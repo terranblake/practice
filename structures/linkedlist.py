@@ -1,9 +1,12 @@
 class Node:
+
     def __init__(self, value = None, node = None):
         self.value = value
         self.next = node
 
+
 class LL:
+
     def __init__(self):
         self.head = None
 
