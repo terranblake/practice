@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 # class GraphNode:
     
 #     def __init__(self, value = None, children = None):
@@ -41,6 +40,41 @@ class Graph:
             self.insert_edge(j, i, GraphType.DIRECTED)
 
 
+class VertexState(Enum):
+
+    UNDISCOVERED = 1
+    DISCOVERED = 2
+    PROCESSED = 3
+
+
+def bfs(graph, root):
+    states = {}
+    parents = {}
+    
+    for e in graph.edges:
+        states[e] = VertexState.UNDISCOVERED
+        parents[e] = None
+
+    states[root] = VertexState.DISCOVERED
+    q = [root]
+
+    while len(q) != 0:
+        u = q.pop()
+
+        # vertex_processor(u)
+
+        for v in graph.edges[u]:
+            # edge_processor(u, v)
+            print("now processing edge u", u, "v", v)
+            
+            if states[v] == VertexState.UNDISCOVERED:
+                states[v] = VertexState.DISCOVERED
+                q.insert(0, v)
+                parents[v] = u
+
+        states[u] = VertexState.PROCESSED
+
+
 if __name__ == "__main__":
     g = Graph(GraphType.UNDIRECTED)
 
@@ -51,5 +85,9 @@ if __name__ == "__main__":
     g.insert_edge(2, 4)
     g.insert_edge(2, 3)
 
-    for vertex, outedges in g.edges.items():
-        print("v", vertex, "edges", str(outedges))
+    bfs(g, 1)
+
+    # for vertex, outedges in g.edges.items():
+    #     print("v", vertex, "edges", str(outedges))
+
+    
