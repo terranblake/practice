@@ -1,6 +1,3 @@
-from enum import Enum
-
-
 def height(node = None):
     if node is None:
         return 0
