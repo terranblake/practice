@@ -48,31 +48,49 @@ class VertexState(Enum):
 
 
 def bfs(graph, root):
+    # stores the current state of each vertex
     states = {}
+
+    # stores the parent for a given vertex, by value
+    # e.g. vertex id 5 's parent is stored at parents[5]
     parents = {}
     
+    # set all edges to undiscovered and parents to unset
     for e in graph.edges:
         states[e] = VertexState.UNDISCOVERED
         parents[e] = None
 
+    # set the root vertex to discovered
     states[root] = VertexState.DISCOVERED
+
+    # init the queue with the root element
     q = [root]
 
     while len(q) != 0:
+        # get the vertex from the queue
         u = q.pop()
 
-        # vertex_processor(u)
-
+        # iterate through each outedge for the current vertex
         for v in graph.edges[u]:
-            # edge_processor(u, v)
-            print("now processing edge u", u, "v", v)
-            
+
+            # we need to search this vertex for more edges
             if states[v] == VertexState.UNDISCOVERED:
+                
+                # we've touched this edge but haven't explored it's edges
                 states[v] = VertexState.DISCOVERED
+
+                # insert this vertex at the beginning of the queue
                 q.insert(0, v)
+
+                # set the parent for this vertex
                 parents[v] = u
 
+        # end processing this vertex
         states[u] = VertexState.PROCESSED
+
+
+def dfs(graph, root):
+    pass
 
 
 if __name__ == "__main__":
