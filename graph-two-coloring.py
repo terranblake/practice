@@ -1,10 +1,17 @@
-from structures.graph import Graph, GraphType
+from structures.unweightedgraph import Graph, GraphType
 
 
 class TwoColoringGraph(Graph):
 
-    def process_edge(self, u, v):
-        print('processing edge =>', u, v)
+    def __init__(self, graph_type):
+        self.type = graph_type
+        self.colors = {}
+        self.edges = {}
+
+
+    def process_vertex_early(self, v):
+        
+        return super().process_vertex_early(v)(self, v)
 
 
 if __name__ == "__main__":
@@ -31,5 +38,4 @@ if __name__ == "__main__":
         g.insert_edge(edge[0], edge[1])
 
     # do a bfs
-    print(g.edges)
     parents = g.bfs(1)
