@@ -1,4 +1,4 @@
-from structures.unweightedgraph import Graph, GraphType
+from structures.graph import Graph, GraphType
 
 
 class TwoColoringGraph(Graph):

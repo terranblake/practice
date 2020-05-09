@@ -38,27 +38,46 @@ class Graph(object):
         self.type = graph_type
         self.edges = {}
 
+        # used for quitting anything early
         self.finished = False
-        self.state = {}
-        self.parents = {}
 
         self.time = 0
+
+        # the time that this edge was discovered
         self.entry_time = {}
+
+        # the time that this edge was processed
         self.exit_time = {}
 
+        # stores the current state of each vertex
+        self.states = {}
 
-    def insert_edge(self, i, j, graph_type = None):
+        # stores the parent for a given vertex, by value
+        # e.g. vertex id 5 's parent is stored at parents[5]
+        self.parents = {}
+
+
+    def insert_edge(self, i, j, weight, graph_type = None):
         if graph_type is None:
             graph_type = self.type
 
         if i not in self.edges:
             self.edges[i] = []
+            self.states[i] = VertexState.UNDISCOVERED
+            self.parents[i] = None
 
-        edge = EdgeNode(j, None, self.edges[i])
+        if j not in self.states:
+            self.states[j] = VertexState.UNDISCOVERED
+            self.parents[j] = None
+
+        if j not in self.edges:
+            self.edges[j] = []
+
+        edge = EdgeNode(j, weight, self.edges[i])
         self.edges[i].append(edge)
 
         if graph_type is GraphType.UNDIRECTED:
-            self.insert_edge(j, i, GraphType.DIRECTED)
+            self.insert_edge(j, i, weight, GraphType.DIRECTED)
 
 
     def process_vertex_early(self, v):
@@ -66,7 +85,7 @@ class Graph(object):
         Called when the vertex is remove from the queue/stack, but before processing
         all associated edges related to this vertex
         '''
-        pass
+        # print(v)
 
 
     def process_edge(self, u, v):
@@ -80,29 +99,22 @@ class Graph(object):
     def process_vertex_late(self, v):
         '''
         Called after all of the edges related to this vertex have been added to the queue
+        or when the vertex has been set to PROCESSED
         '''
         pass
-
 
     def bfs(self, root = 1):
         '''
         Does a breadth-first search on the provided graph, starting from the 
         provided root, then returns the parent associations for the vertices touched
         '''
-
-        # stores the current state of each vertex
-        states = {}
-
-        # stores the parent for a given vertex, by value
-        # e.g. vertex id 5 's parent is stored at parents[5]
-        parents = {}
         
         # set all edges to undiscovered and parents to unset
         for e in self.edges:
-            states[e] = VertexState.UNDISCOVERED
+            self.states[e] = VertexState.UNDISCOVERED
 
         # set the root vertex to discovered
-        states[root] = VertexState.DISCOVERED
+        self.states[root] = VertexState.DISCOVERED
 
         # init the queue with the root element
         q = [root]
@@ -118,23 +130,23 @@ class Graph(object):
                 self.process_edge(u, v.value)
 
                 # we need to search this vertex for more edges
-                if states[v.value] == VertexState.UNDISCOVERED:
+                if self.states[v.value] == VertexState.UNDISCOVERED:
                     # we've touched this edge but haven't explored it's edges
-                    states[v.value] = VertexState.DISCOVERED
+                    self.states[v.value] = VertexState.DISCOVERED
 
                     # insert this vertex at the beginning of the queue
                     q.insert(0, v.value)
 
                     # set the parent for this vertex
-                    parents[v.value] = u
+                    self.parents[v.value] = u
 
             # end processing this vertex
-            states[u] = VertexState.PROCESSED
+            self.states[u] = VertexState.PROCESSED
 
             self.process_vertex_late(u)
         
         # return the parent mappings to the caller
-        return parents
+        return self.parents
 
 
     def dfs(self, root):
@@ -142,20 +154,13 @@ class Graph(object):
         Does a breadth-first search on the provided graph, starting from the 
         provided root, then returns the parent associations for the vertices touched
         '''
-
-        # stores the current state of each vertex
-        states = {}
-
-        # stores the parent for a given vertex, by value
-        # e.g. vertex id 5 's parent is stored at parents[5]
-        parents = {}
         
         # set all edges to undiscovered and parents to unset
         for e in self.edges:
-            states[e] = VertexState.UNDISCOVERED
+            self.states[e] = VertexState.UNDISCOVERED
 
         # set the root vertex to discovered
-        states[root] = VertexState.DISCOVERED
+        self.states[root] = VertexState.DISCOVERED
 
         # init the queue with the root element
         q = [root]
@@ -168,26 +173,28 @@ class Graph(object):
 
             # iterate through each outedge for the current vertex
             for v in self.edges[u]:
-                self.process_edge(u, v.value)
 
-                # we need to search this vertex for more edges
-                if states[v.value] == VertexState.UNDISCOVERED:
-                    # we've touched this edge but haven't explored it's edges
-                    states[v.value] = VertexState.DISCOVERED
+                if self.finished is True: break
 
-                    # insert this vertex at the beginning of the queue
+                if self.states[v.value] == VertexState.UNDISCOVERED:
+                    self.parents[v.value] = u
+                    self.process_edge(u, v.value)
+                    self.states[v.value] = VertexState.DISCOVERED
                     q.append(v.value)
 
-                    # set the parent for this vertex
-                    parents[v.value] = u
+                # once processed, we need to check the edge type
+                if self.states[v.value] == VertexState.PROCESSED:
+                    self.process_edge(u, v.value)
 
             # end processing this vertex
-            states[u] = VertexState.PROCESSED
+            self.states[u] = VertexState.PROCESSED
 
             self.process_vertex_late(u)
+
+            # print(u, v.value, self.states[v.value])
         
         # return the parent mappings to the caller
-        return parents
+        return self.parents
 
 
     def find_path(self, i, j):
@@ -201,15 +208,20 @@ class Graph(object):
         set of edges
         '''
 
-        parents = self.bfs(i)
+        # make sure to run bfs before finding a path
+        # TODO: this should be removed and flag that throws
+        #       and error would sit in place of a graph not being
+        #       traversed prior to finding a path
 
         path = [j]
         current = j
         while current is not None and current != i:
-            if current not in parents:
+            if current not in self.parents:
                 return False
 
-            current = parents[current]
+            print(current, self.parents[current])
+
+            current = self.parents[current]
             path.insert(0, current)
 
         return path
@@ -244,14 +256,15 @@ if __name__ == "__main__":
         (6, 7), (10, 11), (6, 10), (7, 8), (8, 9)
     ]
 
+    # unweighted graph edges
     for edge in component_1_edges:
-        g.insert_edge(edge[0], edge[1])
+        g.insert_edge(edge[0], edge[1], None)
 
     # do a bfs
-    # parents = g.bfs(1)
+    parents = g.bfs(1)
 
-    # do a dfs
-    parents = g.dfs(1)
+    # # do a dfs
+    # parents = g.dfs(1)
 
     # get a path from one node to another
-    # print(g.find_path(3, 1))
+    print(g.find_path(1, 7))
