@@ -39,6 +39,7 @@ class Graph(object):
         self.type = graph_type
         self.edges = {}
         self.colors = {}
+        self.types = {}
 
         # used for quitting anything early
         self.finished = False
@@ -96,6 +97,34 @@ class Graph(object):
         pass
 
 
+    def count_descendants(self, u):
+        '''
+        Returns the count of descendant nodes for u by getting the entry and exit times
+        for u and int dividing by 2. This would be the same as loop through all edges 
+        and comparing the entry and exit times to the given vertex entry and exit times
+        '''
+        return (self.exit_time[u] - self.entry_time[u]) // 2
+
+
+    def is_ancestor(self, u, v):
+        '''
+        Returns True if v is an ancestor of u
+        '''
+        if u not in self.entry_time or u not in self.exit_time:
+            return None
+
+        if v not in self.entry_time or v not in self.exit_time:
+            return None
+
+        started_before = self.entry_time[u] < self.entry_time[v]
+        exited_after = self.exit_time[u] > self.exit_time[v]
+
+        if started_before and exited_after:
+            return True
+
+        return False
+
+
     def edge_classification(self, u, v):
         # tree if u is parent
         if self.parents[v] == u:
@@ -113,7 +142,7 @@ class Graph(object):
         Called when the vertex is remove from the queue/stack, but before processing
         all associated edges related to this vertex
         '''
-        # print(v)
+        pass
 
 
     def process_edge(self, u, v):
@@ -121,7 +150,7 @@ class Graph(object):
         Called the very first time the vertex u is found, just before being added to the
         stack/queue. Vertex u will be processed again once removed from the container
         '''
-        print(u, v)
+        pass
 
 
     def process_vertex_late(self, v):
@@ -134,8 +163,7 @@ class Graph(object):
 
     def bfs(self, root = 1):
         '''
-        Does a breadth-first search on the provided graph, starting from the 
-        provided root, then returns the parent associations for the vertices touched
+        breadth-first search
         '''
         
         # set all edges to undiscovered
@@ -176,53 +204,46 @@ class Graph(object):
 
 
     def dfs(self, u = None):
-        state = self.states[u]
+        '''
+        depth-first search
+        '''
+
         self.time += 1
 
-        if state is VertexState.UNDISCOVERED:
-            self.states[u] = VertexState.DISCOVERED
+        # just before descendents are processed
+        self.entry_time[u] = self.time
+
+        self.states[u] = VertexState.DISCOVERED
     
-            # before outedges are processed
-            self.process_vertex_early(u)
+        # before outedges are processed
+        self.process_vertex_early(u)
 
-            # just before descendents are processed
-            self.entry_time[u] = self.time
+        for e in self.edges[u]:
+            state = self.states[e.v]
+            self.process_edge(u, e.v)
 
-            for e in self.edges[u]:
-                if self.parents[e.v] is None:
-                    self.parents[e.v] = u
+            if state is VertexState.UNDISCOVERED:
+                self.states[e.v] = VertexState.DISCOVERED
+                self.parents[e.v] = u
 
-                edge_type = self.edge_classification(u, e.v)
-                print(u, e.v, edge_type)
-                
-
+                # edge_type = self.edge_classification(u, e.v)
                 # just before edge from u to newly discovered edge is processed
-                self.process_edge(u, e.v)
 
                 self.dfs(e.v)
-            
-            # all descendents have been processed
-            self.exit_time[u] = self.time
+        
+        self.time += 1
 
-            # after outedges are processed
-            self.process_vertex_late(u)
+        # all descendents have been processed
+        self.exit_time[u] = self.time
+
+        # after outedges are processed
+        self.process_vertex_late(u)
 
 
     def find_path(self, i, j):
         '''
         Finds a path between to vertices in the graph
-        i should be further up the graph (closer to the root) than j
-
-        Since graphs can have multiple components (distinctly separate parts),
-        we use the origin of the path to do a bfs prior to finding the path
-        to avoid a scenario where a previous bfs didn't discover a disconnected
-        set of edges
         '''
-
-        # make sure to run bfs before finding a path
-        # TODO: this should be removed and flag that throws
-        #       and error would sit in place of a graph not being
-        #       traversed prior to finding a path
 
         path = [j]
         current = j
@@ -258,7 +279,7 @@ class Graph(object):
 
 
 if __name__ == "__main__":
-    g = Graph(GraphType.DIRECTED)
+    g = Graph(GraphType.UNDIRECTED)
 
     # component #1
     component_1_edges = [
@@ -278,7 +299,7 @@ if __name__ == "__main__":
     # # do a dfs
     # g.dfs(1)
 
-    print(g.parents)
+    # print(g.parents)
 
     # get a path from one node to another
-    # print(g.find_path(1, 7))
+    print(g.find_path(6, 2))

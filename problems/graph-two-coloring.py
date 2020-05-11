@@ -46,4 +46,4 @@ if __name__ == "__main__":
     g.insert_edges(peterson_graph_edges)
 
     # do a bfs
-    parents = g.bfs(1)
+    g.bfs(1)
