@@ -38,12 +38,14 @@ class Graph(object):
     def __init__(self, graph_type):
         self.type = graph_type
         self.edges = {}
+
         self.colors = {}
         self.types = {}
 
         # used for quitting anything early
         self.finished = False
 
+        # global timer to track entry/exit times of vertices
         self.time = 0
 
         # the time that this edge was discovered
@@ -55,8 +57,7 @@ class Graph(object):
         # stores the current state of each vertex
         self.states = {}
 
-        # stores the parent for a given vertex, by value
-        # e.g. vertex id 5 's parent is stored at parents[5]
+        # stores the parent for a given vertex
         self.parents = {}
 
 

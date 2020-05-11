@@ -19,5 +19,4 @@ if __name__ == "__main__":
 
     # print(g.count_descendants(0))
     # print(g.count_descendants(1))
-    print(g.count_descendants(0))
-    print(g.count_descendants(7))
+    # print(g.count_descendants(7))
