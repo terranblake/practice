@@ -10,9 +10,9 @@ class VertexState(Enum):
 
 class EdgeType(Enum):
 
-    TREE = 1
-    BACK = 2
-    BRIDGE = 3
+    TREE = 1    # parent is the node just above it
+    BACK = 2    # points to a node which already has a parent
+    BRIDGE = 3  # points to a node which has already been discovered
 
 
 class GraphType(Enum):
@@ -38,6 +38,7 @@ class Graph(object):
     def __init__(self, graph_type):
         self.type = graph_type
         self.edges = {}
+        self.colors = {}
 
         # used for quitting anything early
         self.finished = False
@@ -77,8 +78,22 @@ class Graph(object):
         edge = EdgeNode(u, v, weight)
         self.edges[u].append(edge)
 
+        self.process_edge_creation(u, v)
+
         if graph_type is GraphType.UNDIRECTED:
             self.insert_edge(v, u, weight, GraphType.DIRECTED)
+
+
+    def insert_edges(self, edges):
+        for [u, v, weight] in edges:
+            self.insert_edge(u, v, weight)
+
+
+    def process_edge_creation(self, u, v):
+        '''
+        Called when a new edge is created
+        '''
+        pass
 
 
     def edge_classification(self, u, v):
@@ -124,8 +139,8 @@ class Graph(object):
         '''
         
         # set all edges to undiscovered
-        for e in self.edges:
-            self.states[e.u] = VertexState.UNDISCOVERED
+        for u in self.edges:
+            self.states[u] = VertexState.UNDISCOVERED
 
         # set the root vertex to discovered
         self.states[root] = VertexState.DISCOVERED
@@ -158,9 +173,6 @@ class Graph(object):
             self.states[u] = VertexState.PROCESSED
 
             self.process_vertex_late(u)
-        
-        # return the parent mappings to the caller
-        return self.parents
 
 
     def dfs(self, u = None):
@@ -250,21 +262,21 @@ if __name__ == "__main__":
 
     # component #1
     component_1_edges = [
-        (1, 2), (1, 8), (1, 3),
-        (2, 4), (4, 6), (6, 2),
-        (3, 5), (5, 4), (5, 7),
-        (5, 8)
+        (1, 2, 0), (1, 8, 0), (1, 3, 0),
+        (2, 4, 0), (4, 6, 0), (6, 2, 0),
+        (3, 5, 0), (5, 4, 0), (5, 7, 0),
+        (5, 8, 0)
     ]
 
     # unweighted graph edges
     for edge in component_1_edges:
-        g.insert_edge(edge[0], edge[1], None)
+        g.insert_edge(edge[0], edge[1], edge[2])
 
     # do a bfs
-    # parents = g.bfs(1)
+    g.bfs(1)
 
     # # do a dfs
-    g.dfs(1)
+    # g.dfs(1)
 
     print(g.parents)
 
