@@ -30,7 +30,6 @@ class TwoColoringGraph(Graph):
         self.colors[v] = self.complement_color(self.colors[u])
         
 
-
 if __name__ == "__main__":
     g = TwoColoringGraph(GraphType.UNDIRECTED)
 

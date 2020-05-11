@@ -12,7 +12,8 @@ class EdgeType(Enum):
 
     TREE = 1    # parent is the node just above it
     BACK = 2    # points to a node which already has a parent
-    BRIDGE = 3  # points to a node which has already been discovered
+    CROSS = 3   # points to a node which has already been discovered
+    FORWARD = 4
 
 
 class GraphType(Enum):
@@ -41,6 +42,8 @@ class Graph(object):
 
         self.colors = {}
         self.types = {}
+        self.reachable_ancestor = {}
+        self.tree_out_degree = {}
 
         # used for quitting anything early
         self.finished = False
@@ -132,7 +135,7 @@ class Graph(object):
             return EdgeType.TREE
         # bridge if v already has end time
         elif v in self.exit_time:
-            return EdgeType.BRIDGE
+            return EdgeType.CROSS
         # back if v parent is not u
         elif self.parents[v] != u:
             return EdgeType.BACK
@@ -303,4 +306,4 @@ if __name__ == "__main__":
     # print(g.parents)
 
     # get a path from one node to another
-    print(g.find_path(6, 2))
+    # print(g.find_path(6, 2))
