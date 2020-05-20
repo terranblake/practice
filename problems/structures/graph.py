@@ -263,39 +263,16 @@ class Graph(object):
         return path
 
 
-    def find_components(self):
-        '''
-        Does a bfs for each separate component of the graph
-        returning a node for each component that was discovered
-        '''
-        discovered = []
-        components = []
-
-        for u in self.edges:
-            if u not in discovered:
-                components.append(u)
-                
-                found = self.bfs(u)
-                for x in found:
-                    discovered.append(x)
-
-        return components
-
-
 if __name__ == "__main__":
     g = Graph(GraphType.UNDIRECTED)
 
-    # component #1
-    component_1_edges = [
+    # unweighted graph edges
+    g.insert_edges([
         (1, 2, 0), (1, 8, 0), (1, 3, 0),
         (2, 4, 0), (4, 6, 0), (6, 2, 0),
         (3, 5, 0), (5, 4, 0), (5, 7, 0),
         (5, 8, 0)
-    ]
-
-    # unweighted graph edges
-    for edge in component_1_edges:
-        g.insert_edge(edge[0], edge[1], edge[2])
+    ])
 
     # do a bfs
     g.bfs(1)
